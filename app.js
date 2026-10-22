@@ -6,12 +6,17 @@
 
   function newJob() { return { role: '', company: '', from: '', to: '', current: false, note: '', desc: '' }; }
   function newEdu() { return { school: '', degree: '', from: '', to: '' }; }
+  function newOther() { return { title: 'Egyéb', text: '' }; }
+
+  var DEF_HUE = 214, DEF_LIGHT = 35;
+  var FS_MIN = -1, FS_MAX = 3, FS_STEP = 2; // lépcsők: -2, alap, +2, +4, +6 pont
 
   var state = {
     name: '', title: '', email: '', phone: '', city: '', born: '', link: '', photo: '',
-    summary: '', skills: '', langs: '', other: '',
+    summary: '', skills: '', langs: '',
     template: 'simple', last5: false,
-    jobs: [newJob()], edus: [newEdu()]
+    fsLevel: 0, hue: DEF_HUE, light: DEF_LIGHT,
+    jobs: [newJob()], edus: [newEdu()], others: [newOther()]
   };
 
   var A4_PX = 297 * 96 / 25.4;
@@ -55,10 +60,10 @@
     { name: 'Sofőr, szállítás', items: [
       '„B” kategóriás jogosítvány', 'Balesetmentes vezetés', 'Útvonaltervezés, térképismeret',
       'Fegyelmezett, szabálykövető munkavégzés', 'Felelősségtudat', 'Önálló munkavégzés'] },
-    { name: 'Számítógép és nyelv', items: [
+    { name: 'Számítógép', items: [
       'Számítógépes alapismeretek', 'Irodai programok ismerete (Word, Excel, Outlook)',
-      'Internet- és e-mail-használat', 'Angol nyelv: alapfok', 'Angol nyelv: középfok',
-      'Angol nyelv: felsőfok', 'Német nyelv: alapfok', 'Német nyelv: középfok'] }
+      'Internet- és e-mail-használat', 'Gyors tanulás új programokból', 'Online ügyintézés',
+      'Adatvédelmi szabályok ismerete'] }
   ];
   var ideaCat = 0;
 
@@ -133,7 +138,18 @@
     if (sub) return '<b>' + esc(sub) + '</b>';
     return '';
   }
-  function compItems() { return lines(state.skills).concat(lines(state.langs)); }
+  function compItems() { return lines(state.skills); }
+  function langItems() { return lines(state.langs); }
+
+  // Betűméret és szín: a lap saját változóiként kerül a lapra, így a letöltött fájlban is megmarad.
+  function sheetVars() {
+    var fs = state.fsLevel * FS_STEP;
+    var h = state.hue, l = state.light;
+    return '--fs:' + fs + 'pt;' +
+      '--ac:hsl(' + h + ',50%,' + l + '%);' +
+      '--acd:hsl(' + h + ',50%,' + Math.min(l, 30) + '%);' +
+      '--acl:hsl(' + h + ',75%,82%)';
+  }
 
   /* ---------- Önéletrajz lap ---------- */
 
@@ -168,18 +184,23 @@
     var role = state.title ? '<p class="role">' + esc(state.title) + '</p>' : '';
     var contact = contactItems();
     var born = state.born.trim() ? '<div class="born">Született: ' + esc(state.born.trim()) + '</div>' : '';
-    var comp = compItems();
+    var comp = compItems(), langs = langItems();
+    var vars = ' style="' + sheetVars() + '"';
     var body =
       sec('Bemutatkozás', richHTML(state.summary)) +
       sec('Szakmai tapasztalat', jobsHTML()) +
       sec('Tanulmányok', edusHTML());
-    var other = sec('Egyéb', richHTML(state.other));
+    var other = state.others.filter(function (o) { return o.text.trim(); }).map(function (o) {
+      return sec(esc(o.title.trim() || 'Egyéb'), richHTML(o.text));
+    }).join('');
 
     if (state.template === 'modern') {
       var side = contact.concat(state.born.trim() ? ['Született: ' + esc(state.born.trim())] : []);
-      return '<div class="sheet t-modern"><aside class="aside">' + photoHTML() +
+      var list = function (arr) { return '<ul>' + arr.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>'; };
+      return '<div class="sheet t-modern"' + vars + '><aside class="aside">' + photoHTML() +
         (side.length ? '<h2>Kapcsolat</h2><ul>' + side.map(function (c) { return '<li>' + c + '</li>'; }).join('') + '</ul>' : '') +
-        (comp.length ? '<h2>Kompetenciák</h2><ul>' + comp.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' : '') +
+        (langs.length ? '<h2>Nyelvek</h2>' + list(langs) : '') +
+        (comp.length ? '<h2>Kompetenciák</h2>' + list(comp) : '') +
         '</aside><div class="main"><h1>' + name + '</h1>' + role + body + other + '</div></div>';
     }
 
@@ -188,10 +209,11 @@
       born + '</div></div>';
 
     if (state.template === 'compact') {
-      return '<div class="sheet t-compact">' + head + body +
-        sec('Kompetenciák', bulletsHTML(comp, 'cols')) + other + '</div>';
+      return '<div class="sheet t-compact"' + vars + '>' + head + body +
+        sec('Nyelvek', bulletsHTML(langs, 'cols')) + sec('Kompetenciák', bulletsHTML(comp, 'cols')) + other + '</div>';
     }
-    return '<div class="sheet t-simple">' + head + body + sec('Kompetenciák', bulletsHTML(comp)) + other + '</div>';
+    return '<div class="sheet t-simple"' + vars + '>' + head + body +
+      sec('Nyelvek', bulletsHTML(langs)) + sec('Kompetenciák', bulletsHTML(comp)) + other + '</div>';
   }
 
   /* ---------- Tippek (szabályalapú, nincs AI) ---------- */
@@ -233,7 +255,8 @@
     var older = state.jobs.filter(function (j) { return jobHasContent(j) && isOld(j); }).length;
     if (older && !state.last5) add('info', older + ' munkahely 5 évnél régebben ért véget. Ha nem kapcsolódik az álláshoz, kapcsold be az „elmúlt 5 év” szűrőt.');
 
-    var text = [state.name, state.title, state.summary, state.skills, state.langs, state.other]
+    var text = [state.name, state.title, state.summary, state.skills, state.langs]
+      .concat(state.others.map(function (o) { return o.text; }))
       .concat(state.jobs.map(function (j) { return j.role + ' ' + j.company + ' ' + j.desc; })).join('\n');
     if (/!/.test(text)) add('info', 'Felkiáltójel van a szövegben. Önéletrajzban nem szokás, töröld.');
     if (/[^\S\n]{2,}/.test(text)) add('info', 'Dupla szóköz van a szövegben. Töröld, mert rendezetlennek látszik.');
@@ -242,7 +265,7 @@
     }
     if (lines(state.skills).length > 10) add('info', lines(state.skills).length + ' kompetenciát adtál meg. 6–10 a jó, a legfontosabbakat tartsd meg.');
 
-    if (pages > 2) add('warn', 'Az önéletrajz ' + pages + ' oldalas. Cél az 1, legfeljebb 2 oldal. Rövidíts, vagy válaszd a „Tömör” sablont.');
+    if (pages > 2) add('warn', 'Az önéletrajz ' + pages + ' oldalas. Cél az 1, legfeljebb 2 oldal. Rövidíts, csökkentsd a betűméretet, vagy válaszd a „Tömör” sablont.');
     else if (pages === 2) add('info', 'Az önéletrajz 2 oldalas. 10 évnél kevesebb tapasztalatnál 1 oldal a jó.');
 
     if (!tips.some(function (t) { return t.level === 'warn'; }) && (state.name || jobs.length)) {
@@ -323,9 +346,20 @@
       '<label>Meddig<input data-k="to" inputmode="numeric" value="' + esc(e.to) + '" placeholder="2021"></label></div>' +
       '</div>';
   }
+  function otherCard(o, i, total) {
+    return '<div class="card" data-i="' + i + '">' +
+      '<div class="head"><span>Szakasz ' + (i + 1) + '</span><span class="btns">' +
+      '<button type="button" class="mini ghost" data-act="up" aria-label="Feljebb"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+      '<button type="button" class="mini ghost" data-act="down" aria-label="Lejjebb"' + (i === total - 1 ? ' disabled' : '') + '>↓</button>' +
+      '<button type="button" class="mini ghost danger" data-act="del" aria-label="Törlés">✕</button></span></div>' +
+      '<label>Szakasz címe<input data-k="title" spellcheck="true" lang="hu" value="' + esc(o.title) + '" placeholder="Egyéb"></label>' +
+      '<label>Tartalom<textarea data-k="text" rows="4" spellcheck="true" lang="hu" placeholder="- Elsősegély tanfolyam (2023)&#10;- Önkéntes a helyi állatmenhelyen">' + esc(o.text) + '</textarea></label>' +
+      '</div>';
+  }
   function renderLists() {
     $('#jobs-list').innerHTML = state.jobs.map(function (j, i) { return jobCard(j, i, state.jobs.length); }).join('');
     $('#edus-list').innerHTML = state.edus.map(function (e, i) { return eduCard(e, i); }).join('');
+    $('#others-list').innerHTML = state.others.map(function (o, i) { return otherCard(o, i, state.others.length); }).join('');
   }
 
   function bindList(listSel, key, factory) {
@@ -478,6 +512,31 @@
 
     bindList('#jobs-list', 'jobs', newJob);
     bindList('#edus-list', 'edus', newEdu);
+    bindList('#others-list', 'others', newOther);
+    $('#add-other').addEventListener('click', function () {
+      state.others.push({ title: '', text: '' });
+      renderLists(); update();
+    });
+
+    // Betűméret: minden lépés minden szöveghez ugyanannyi pontot ad hozzá
+    function applyLook() {
+      var pt = state.fsLevel * FS_STEP;
+      $('#fs-label').textContent = pt === 0 ? 'alap' : (pt > 0 ? '+' : '−') + Math.abs(pt) + ' pt';
+      $('#fs-minus').disabled = state.fsLevel <= FS_MIN;
+      $('#fs-plus').disabled = state.fsLevel >= FS_MAX;
+      var look = $('.look');
+      look.style.setProperty('--sw-hue', state.hue);
+      look.style.setProperty('--sw-l', state.light);
+      $('#hue').value = state.hue;
+      $('#light').value = state.light;
+      update();
+    }
+    $('#fs-minus').addEventListener('click', function () { if (state.fsLevel > FS_MIN) { state.fsLevel--; applyLook(); } });
+    $('#fs-plus').addEventListener('click', function () { if (state.fsLevel < FS_MAX) { state.fsLevel++; applyLook(); } });
+    $('#hue').addEventListener('input', function (e) { state.hue = parseInt(e.target.value, 10); applyLook(); });
+    $('#light').addEventListener('input', function (e) { state.light = parseInt(e.target.value, 10); applyLook(); });
+    $('#color-reset').addEventListener('click', function () { state.hue = DEF_HUE; state.light = DEF_LIGHT; applyLook(); });
+    applyLook();
 
     window.addEventListener('resize', fitPreview);
     window.addEventListener('beforeunload', function (e) {
