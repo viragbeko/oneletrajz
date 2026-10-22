@@ -77,6 +77,15 @@ button:disabled { opacity: .4; cursor: default; }
 .pill .mark { flex: none; width: 1.2em; font-weight: 700; color: var(--accent); }
 .pill[aria-pressed=true] { border-color: var(--accent); background: var(--info-bg); }
 
+/* jogosítvány-kategória felvillanó */
+.licnote { margin: 2px 0 4px; padding: 10px 12px; border: 2px solid var(--warn); background: var(--warn-bg); border-radius: 10px; animation: licflash 1s ease-out 2; }
+.licnote strong { display: block; font-size: 14px; margin-bottom: 8px; }
+.lic-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.lic-btns button { min-width: 44px; font-weight: 700; }
+.lic-btns button[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+@keyframes licflash { 0% { box-shadow: 0 0 0 0 var(--warn); } 60% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) { .licnote { animation: none; } }
+
 /* tippek */
 .tipsbox { margin-bottom: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; background: var(--bg); }
 .tipsbox summary { cursor: pointer; padding: 10px 0; font-weight: 600; font-size: 15px; }

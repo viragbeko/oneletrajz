@@ -12,7 +12,7 @@
   var BASE_PT = 2, FS_MIN = -2, FS_MAX = 3, FS_STEP = 2; // az alapméret már +2 pt, innen lépked a gomb
 
   var state = {
-    name: '', fileName: '', title: '', email: '', phone: '', city: '', born: '', link: '', photo: '',
+    name: '', fileName: '', email: '', phone: '', city: '', born: '', photo: '',
     summary: '', skills: '', langs: '',
     template: 'simple', last5: false,
     fsLevel: 0, hue: DEF_HUE, light: DEF_LIGHT,
@@ -22,46 +22,62 @@
   /* ---------- Kompetencia-ötletek ---------- */
 
   var COMMON = ['Terhelhetőség', 'Precizitás', 'Csapatban és egyedül is tudok dolgozni'];
+  var LICENSE = 'Jogosítvány';
+  var LICENSE_CATS = ['A', 'B', 'BE', 'C', 'CE', 'D', 'T'];
+  // Az Általános lista elöl áll; az ott szereplő tételek a többi területen nem ismétlődnek.
   var IDEAS = [
-    { name: 'Általános', items: [
+    { name: 'Általános', items: COMMON.concat([LICENSE,
       'Megbízhatóság', 'Pontosság, határidők betartása', 'Önálló munkavégzés', 'Gyors tanulás',
       'Jó kommunikációs készség', 'Problémamegoldó képesség', 'Segítőkészség', 'Stressztűrő képesség',
-      'Szervezőkészség', 'Felelősségtudat'] },
+      'Szervezőkészség', 'Felelősségtudat']) },
+    { name: 'Gyártási munkák', items: [
+      'Összeszerelő munka kézi és gépi eszközökkel', 'Alkatrészek minőségi ellenőrzése',
+      'Hibás darabok kiválogatása', 'Csomagolás, címkézés', 'Gépkezelés',
+      'Futószalagi munka, norma teljesítése', 'Műszaki rajz és munkautasítás olvasása',
+      'Mérőeszközök használata (pl. tolómérő)', 'Kézügyesség, pontos mozdulatok',
+      'Monoton, ismétlődő munka jó tűrése', 'Fizikai erőnlét, hosszú állómunka',
+      'Tisztaság és rend a munkaterületen', 'Váltott műszakos munka vállalása',
+      'Munkavédelmi szabályok betartása'] },
+    { name: 'Építőipar, terepmunka', items: [
+      'Fizikai erőnlét', 'Kültéri munka vállalása, időjárástól függetlenül',
+      'Építőipari segédmunka (pl. falazás, vakolás)', 'Festés, mázolás, glettelés', 'Burkolás',
+      'Gipszkartonozás', 'Szerszámok és kisgépek használata (pl. fúró, flex)',
+      'Építési tervek, rajzok olvasása', 'Mérés és kitűzés (mérőszalag, vízmérték)',
+      'Anyagmozgatás, rakodás', 'Magasban végzett munka (állványon)',
+      'Védőfelszerelés használata, munkavédelmi szabályok', 'Kiküldetés, ingázás vállalása'] },
+    { name: 'Raktár, logisztika', items: [
+      'Fizikai erőnlét', 'Áruátvétel, komissiózás', 'Leltározás', 'Raktárkezelő programok ismerete',
+      'Targoncavezetői jogosítvány', 'Pontos és gyors munkavégzés', 'Munkavédelmi szabályok ismerete'] },
+    { name: 'Takarítói munka', items: [
+      'Fizikai erőnlét', 'Alaposság, igényesség', 'Tisztítószerek és gépek szakszerű használata',
+      'Munkavédelmi szabályok ismerete', 'Jó időbeosztás', 'Megbízhatóság, kulcskezelés',
+      'Műszakos és hétvégi munka vállalása'] },
+    { name: 'Vendéglátás', items: [
+      'Gyors tempóban is pontos munka', 'Vendégbarát hozzáállás', 'Pénztárkezelés',
+      'Higiéniai szabályok ismerete (HACCP)', 'Műszakbeosztás, hétvégi munka vállalása'] },
+    { name: 'Értékesítés, ügyfélszolgálat', items: [
+      'Ügyfélközpontú hozzáállás', 'Konfliktuskezelés, panaszkezelés', 'Türelem',
+      'Pénztárgép- és kasszakezelés', 'Eladási tapasztalat', 'Termékismeret gyors elsajátítása',
+      'Udvarias, segítőkész fellépés'] },
+    { name: 'Sofőr, szállítás', items: [
+      'Balesetmentes vezetés', 'Útvonaltervezés, térképismeret', 'Fegyelmezett, szabálykövető munkavégzés',
+      'Pontos, időben történő szállítás', 'Rakomány biztonságos rögzítése',
+      'Menetlevél és szállítási dokumentumok kezelése'] },
+    { name: 'Adminisztratív munka', items: [
+      'Irodai programok ismerete (Word, Excel, Outlook)', 'Gyors és pontos gépelés',
+      'Iratkezelés, archiválás', 'Ügyfélkezelés telefonon és e-mailben', 'Időpont- és naptárkezelés',
+      'Levelezés, dokumentumszerkesztés', 'Adatbevitel', 'Diszkréció, bizalmas adatkezelés'] },
     { name: 'Pénzügyi munka', items: [
       'Könyvelési és pénzügyi ismeretek', 'Számlázás, bizonylatkezelés', 'Főkönyvi könyvelés',
       'Bankszámla-egyeztetés', 'Költségellenőrzés', 'Excel (haladó szint)',
       'Pénzügyi szoftverek ismerete (pl. SAP, számlázó programok)', 'ÁFA és adóügyi alapismeretek',
       'Adatbevitel nagy pontossággal', 'Riportok, kimutatások készítése'] },
-    { name: 'Adminisztratív munka', items: [
-      'Irodai programok ismerete (Word, Excel, Outlook)', 'Gyors és pontos gépelés',
-      'Iratkezelés, archiválás', 'Ügyfélkezelés telefonon és e-mailben', 'Időpont- és naptárkezelés',
-      'Levelezés, dokumentumszerkesztés', 'Adatbevitel', 'Diszkréció, bizalmas adatkezelés',
-      'Szervezőkészség'] },
-    { name: 'Takarítói munka', items: [
-      'Fizikai erőnlét', 'Alaposság, igényesség', 'Tisztítószerek és gépek szakszerű használata',
-      'Munkavédelmi szabályok ismerete', 'Önálló munkavégzés', 'Jó időbeosztás',
-      'Megbízhatóság, kulcskezelés', 'Műszakos és hétvégi munka vállalása'] },
-    { name: 'Értékesítés, ügyfélszolgálat', items: [
-      'Ügyfélközpontú hozzáállás', 'Jó kommunikációs készség', 'Konfliktuskezelés, panaszkezelés',
-      'Türelem', 'Pénztárgép- és kasszakezelés', 'Eladási tapasztalat',
-      'Termékismeret gyors elsajátítása', 'Udvarias, segítőkész fellépés'] },
-    { name: 'Raktár, logisztika', items: [
-      'Fizikai erőnlét', 'Áruátvétel, komissiózás', 'Leltározás', 'Raktárkezelő programok ismerete',
-      'Targoncavezetői jogosítvány', 'Pontos és gyors munkavégzés', 'Munkavédelmi szabályok ismerete'] },
-    { name: 'Vendéglátás', items: [
-      'Gyors tempóban is pontos munka', 'Vendégbarát hozzáállás', 'Pénztárkezelés',
-      'Higiéniai szabályok ismerete (HACCP)', 'Műszakbeosztás, hétvégi munka vállalása',
-      'Jó stressztűrő képesség'] },
     { name: 'Vezetés, szervezés', items: [
       'Csapatvezetés', 'Döntési képesség', 'Felelősségvállalás', 'Feladatok delegálása',
       'Időmenedzsment', 'Konfliktuskezelés', 'Tervezés, szervezés'] },
-    { name: 'Sofőr, szállítás', items: [
-      '„B” kategóriás jogosítvány', 'Balesetmentes vezetés', 'Útvonaltervezés, térképismeret',
-      'Fegyelmezett, szabálykövető munkavégzés', 'Felelősségtudat', 'Önálló munkavégzés'] },
     { name: 'Számítógép', items: [
       'Számítógépes alapismeretek', 'Irodai programok ismerete (Word, Excel, Outlook)',
-      'Internet- és e-mail-használat', 'Gyors tanulás új programokból', 'Online ügyintézés',
-      'Adatvédelmi szabályok ismerete'] }
+      'Internet- és e-mail-használat', 'Online ügyintézés', 'Adatvédelmi szabályok ismerete'] }
   ];
   var ideaCat = 0;
 
@@ -155,7 +171,6 @@
     if (state.city) items.push(esc(state.city));
     if (state.phone) items.push(esc(state.phone));
     if (state.email) items.push(esc(state.email));
-    if (state.link) items.push(esc(state.link));
     return items;
   }
   function jobsHTML() {
@@ -178,7 +193,6 @@
 
   function sheetHTML() {
     var name = state.name ? esc(state.name) : '<span class="ph">Teljes neved</span>';
-    var role = state.title ? '<p class="role">' + esc(state.title) + '</p>' : '';
     var contact = contactItems();
     var born = state.born.trim() ? '<div class="born">Született: ' + esc(state.born.trim()) + '</div>' : '';
     var comp = compItems();
@@ -197,10 +211,10 @@
       return '<div class="sheet t-modern"' + vars + '><aside class="aside">' + photoHTML() +
         (side.length ? '<h2>Kapcsolat</h2><ul>' + side.map(function (c) { return '<li>' + c + '</li>'; }).join('') + '</ul>' : '') +
         (comp.length ? '<h2>Kompetenciák</h2>' + list(comp) : '') +
-        '</aside><div class="main"><h1>' + name + '</h1>' + role + body + other + '</div></div>';
+        '</aside><div class="main"><h1>' + name + '</h1>' + body + other + '</div></div>';
     }
 
-    var head = '<div class="head">' + photoHTML() + '<div class="hd"><h1>' + name + '</h1>' + role +
+    var head = '<div class="head">' + photoHTML() + '<div class="hd"><h1>' + name + '</h1>' +
       (contact.length ? '<div class="contact">' + contact.map(function (c) { return '<span>' + c + '</span>'; }).join('') + '</div>' : '') +
       born + '</div></div>';
 
@@ -251,22 +265,22 @@
       '<button type="button" class="mini ghost" data-act="up" aria-label="Feljebb"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
       '<button type="button" class="mini ghost" data-act="down" aria-label="Lejjebb"' + (i === total - 1 ? ' disabled' : '') + '>↓</button>' +
       '<button type="button" class="mini ghost danger" data-act="del" aria-label="Törlés">✕</button></span></div>' +
-      '<label>Beosztás<input data-k="role" spellcheck="true" lang="hu" value="' + esc(j.role) + '" placeholder="pl. Könyvelő"></label>' +
+      '<label>Beosztás<input data-k="role" spellcheck="true" lang="hu" value="' + esc(j.role) + '" placeholder="pl. Összeszerelő"></label>' +
       '<label>Cég<input data-k="company" spellcheck="true" lang="hu" value="' + esc(j.company) + '" placeholder="pl. Minta Kft."></label>' +
       '<div class="two"><label>Mikortól<input data-k="from" inputmode="numeric" value="' + esc(j.from) + '" placeholder="2023.08"></label>' +
       '<label>Meddig<input data-k="to" inputmode="numeric" value="' + esc(j.to) + '" placeholder="2025.12"' + (j.current ? ' disabled' : '') + '></label></div>' +
       '<label class="check"><input type="checkbox" data-k="current"' + (j.current ? ' checked' : '') + '> Jelenleg is itt dolgozom</label>' +
       '<label>Megjegyzés a dátum mellé (nem kötelező)<input data-k="note" spellcheck="true" lang="hu" value="' + esc(j.note) + '" placeholder="pl. 2026.04-től fizetetlen szabadságon"></label>' +
-      '<label>Mit csináltál? (soronként egy pont, 3–5 elég)' +
-      '<textarea data-k="desc" rows="4" spellcheck="true" lang="hu" placeholder="Havi 300 számlát könyveltem&#10;Az ügyfelek fizetési késését 20%-kal csökkentettem">' + esc(j.desc) + '</textarea></label>' +
+      '<label>Mit csináltál ott? Röviden, soronként egy dolgot (3–5 elég)' +
+      '<textarea data-k="desc" rows="4" spellcheck="true" lang="hu" placeholder="Alkatrészeket szereltem össze a futószalagon&#10;A kész darabokat átnéztem, a hibásakat kiválogattam&#10;Termékeket csomagoltam és címkéztem&#10;Teljesítettem a napi normát">' + esc(j.desc) + '</textarea></label>' +
       '</div>';
   }
   function eduCard(e, i) {
     return '<div class="card" data-i="' + i + '">' +
       '<div class="head"><span>Iskola ' + (i + 1) + '</span><span class="btns">' +
       '<button type="button" class="mini ghost danger" data-act="del" aria-label="Törlés">✕</button></span></div>' +
-      '<label>Végzettség<input data-k="degree" spellcheck="true" lang="hu" value="' + esc(e.degree) + '" placeholder="pl. Pénzügy és számvitel"></label>' +
-      '<label>Iskola<input data-k="school" spellcheck="true" lang="hu" value="' + esc(e.school) + '" placeholder="pl. Pannon Egyetem"></label>' +
+      '<label>Végzettség<input data-k="degree" spellcheck="true" lang="hu" value="' + esc(e.degree) + '" placeholder="pl. Gépi forgácsoló"></label>' +
+      '<label>Iskola<input data-k="school" spellcheck="true" lang="hu" value="' + esc(e.school) + '" placeholder="pl. Mintaváros Szakképző Iskola"></label>' +
       '<div class="two"><label>Mikortól<input data-k="from" inputmode="numeric" value="' + esc(e.from) + '" placeholder="2017"></label>' +
       '<label>Meddig<input data-k="to" inputmode="numeric" value="' + esc(e.to) + '" placeholder="2021"></label></div>' +
       '</div>';
@@ -278,7 +292,7 @@
       '<button type="button" class="mini ghost" data-act="down" aria-label="Lejjebb"' + (i === total - 1 ? ' disabled' : '') + '>↓</button>' +
       '<button type="button" class="mini ghost danger" data-act="del" aria-label="Törlés">✕</button></span></div>' +
       '<label>Szakasz címe<input data-k="title" spellcheck="true" lang="hu" value="' + esc(o.title) + '" placeholder="Egyéb"></label>' +
-      '<label>Tartalom<textarea data-k="text" rows="4" spellcheck="true" lang="hu" placeholder="- Elsősegély tanfolyam (2023)&#10;- Önkéntes a helyi állatmenhelyen">' + esc(o.text) + '</textarea></label>' +
+      '<label>Tartalom<textarea data-k="text" rows="4" spellcheck="true" lang="hu" placeholder="- Targoncavezetői tanfolyam (2023)&#10;- Elsősegély tanfolyam">' + esc(o.text) + '</textarea></label>' +
       '</div>';
   }
   function renderLists() {
@@ -321,27 +335,76 @@
   /* ---------- Kérek ötletet ---------- */
 
   function ideaItems(cat) {
-    var items = COMMON.slice();
-    IDEAS[cat].items.forEach(function (x) { if (items.indexOf(x) < 0) items.push(x); });
-    return items;
+    if (cat === 0) return IDEAS[0].items.slice();
+    var general = IDEAS[0].items.map(function (x) { return x.toLowerCase(); });
+    return IDEAS[cat].items.filter(function (x) { return general.indexOf(x.toLowerCase()) < 0; });
   }
+
+  // Jogosítvány: a sor "Jogosítvány: B, CE kategória" alakú, a kategóriát a felvillanó gombokkal adja meg
+  var licShow = false, licTimer = 0;
+  function licIndex(arr) {
+    for (var i = 0; i < arr.length; i++) if (/^jogosítvány/i.test(arr[i])) return i;
+    return -1;
+  }
+  function licCats(line) {
+    var m = /^jogosítvány:?\s*(.*?)(?:\s*kategória)?\s*$/i.exec(line || '');
+    return m && m[1] ? m[1].split(/[\s,;\/]+/).filter(Boolean).map(function (x) { return x.toUpperCase(); }) : [];
+  }
+  function licLine(cats) { return LICENSE + ':' + (cats.length ? ' ' + cats.join(', ') + ' kategória' : ''); }
+  function setSkills(arr) {
+    state.skills = arr.join('\n');
+    $('#f-skills').value = state.skills;
+  }
+  function licNoteHTML() {
+    var arr = lines(state.skills), i = licIndex(arr), cats = i >= 0 ? licCats(arr[i]) : [];
+    return '<div class="licnote" role="status"><strong>Add meg a jogosítvány kategóriáját:</strong>' +
+      '<div class="lic-btns">' + LICENSE_CATS.map(function (c) {
+        return '<button type="button" class="mini ghost" data-lic="' + c + '" aria-pressed="' + (cats.indexOf(c) >= 0) + '">' + c + '</button>';
+      }).join('') + '</div></div>';
+  }
+  function showLicNote() {
+    licShow = true;
+    clearTimeout(licTimer);
+    licTimer = setTimeout(function () { licShow = false; renderIdeas(); }, 8000);
+  }
+
   function renderIdeas() {
     $('#idea-cats').innerHTML = IDEAS.map(function (c, i) {
       return '<button type="button" class="chip ghost" role="tab" data-cat="' + i + '" aria-selected="' + (i === ideaCat) + '">' + esc(c.name) + '</button>';
     }).join('');
-    var have = lines(state.skills).map(function (x) { return x.toLowerCase(); });
+    var arr = lines(state.skills);
+    var have = arr.map(function (x) { return x.toLowerCase(); });
     $('#idea-list').innerHTML = ideaItems(ideaCat).map(function (it) {
-      var on = have.indexOf(it.toLowerCase()) >= 0;
+      var isLic = it === LICENSE;
+      var on = isLic ? licIndex(arr) >= 0 : have.indexOf(it.toLowerCase()) >= 0;
       return '<button type="button" class="pill ghost" data-idea="' + esc(it) + '" aria-pressed="' + on + '">' +
-        '<span class="mark" aria-hidden="true">' + (on ? '✓' : '+') + '</span><span>' + esc(it) + '</span></button>';
+        '<span class="mark" aria-hidden="true">' + (on ? '✓' : '+') + '</span><span>' + esc(it) + '</span></button>' +
+        (isLic && on && licShow ? licNoteHTML() : '');
     }).join('');
   }
   function toggleIdea(text) {
     var arr = lines(state.skills);
-    var idx = arr.map(function (x) { return x.toLowerCase(); }).indexOf(text.toLowerCase());
-    if (idx >= 0) arr.splice(idx, 1); else arr.push(text);
-    state.skills = arr.join('\n');
-    $('#f-skills').value = state.skills;
+    if (text === LICENSE) {
+      var li = licIndex(arr);
+      if (li >= 0) { arr.splice(li, 1); licShow = false; clearTimeout(licTimer); }
+      else { arr.push(licLine([])); showLicNote(); }
+    } else {
+      var idx = arr.map(function (x) { return x.toLowerCase(); }).indexOf(text.toLowerCase());
+      if (idx >= 0) arr.splice(idx, 1); else arr.push(text);
+    }
+    setSkills(arr);
+    renderIdeas();
+    update();
+  }
+  function toggleLicCat(cat) {
+    var arr = lines(state.skills), i = licIndex(arr);
+    if (i < 0) return;
+    var cats = licCats(arr[i]), at = cats.indexOf(cat);
+    if (at >= 0) cats.splice(at, 1); else cats.push(cat);
+    cats.sort(function (x, y) { return LICENSE_CATS.indexOf(x) - LICENSE_CATS.indexOf(y); });
+    arr[i] = licLine(cats);
+    setSkills(arr);
+    showLicNote();
     renderIdeas();
     update();
   }
@@ -435,6 +498,8 @@
       if (b) { ideaCat = parseInt(b.getAttribute('data-cat'), 10); renderIdeas(); }
     });
     $('#idea-list').addEventListener('click', function (ev) {
+      var l = ev.target.closest('[data-lic]');
+      if (l) { toggleLicCat(l.getAttribute('data-lic')); return; }
       var b = ev.target.closest('[data-idea]');
       if (b) toggleIdea(b.getAttribute('data-idea'));
     });
