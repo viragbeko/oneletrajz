@@ -67,6 +67,16 @@ button:disabled { opacity: .4; cursor: default; }
 .card label { margin-bottom: 8px; }
 .card input:not([type=checkbox]), .card textarea { background: var(--card); }
 
+/* feltűnő "Kérek ötletet" gomb */
+.ideas-btn { display: block; width: 100%; margin: 4px 0 12px; padding: 12px 14px; text-align: center; color: #fff; border: 0; border-radius: 12px;
+  background: linear-gradient(135deg, #f97316, #db2777); box-shadow: 0 4px 14px rgba(219,39,119,.35); animation: ideapulse 2.4s ease-in-out infinite; }
+.ideas-btn:hover { filter: brightness(1.07); }
+.ideas-btn[aria-expanded=true] { animation: none; }
+.ib-main { display: block; font-size: 18px; font-weight: 800; letter-spacing: .2px; }
+.ib-sub { display: block; font-size: 13px; opacity: .95; margin-top: 2px; }
+@keyframes ideapulse { 0%, 100% { box-shadow: 0 4px 14px rgba(219,39,119,.35); } 50% { box-shadow: 0 4px 22px 4px rgba(249,115,22,.65); } }
+@media (prefers-reduced-motion: reduce) { .ideas-btn { animation: none; } }
+
 /* kompetencia-ötletek */
 .ideas { margin: 10px 0 4px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }

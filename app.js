@@ -14,7 +14,7 @@
   var state = {
     name: '', fileName: '', email: '', phone: '', city: '', born: '', photo: '',
     summary: '', skills: '', langs: '',
-    template: 'simple', last5: false,
+    template: 'simple',
     fsLevel: 0, hue: DEF_HUE, light: DEF_LIGHT,
     jobs: [newJob()], edus: [newEdu()], others: [newOther()]
   };
@@ -26,7 +26,7 @@
   var LICENSE_CATS = ['A', 'B', 'BE', 'C', 'CE', 'D', 'T'];
   // Az Általános lista elöl áll; az ott szereplő tételek a többi területen nem ismétlődnek.
   var IDEAS = [
-    { name: 'Általános', items: COMMON.concat([LICENSE,
+    { name: 'Általános', items: [LICENSE].concat(COMMON, [
       'Megbízhatóság', 'Pontosság, határidők betartása', 'Önálló munkavégzés', 'Gyors tanulás',
       'Jó kommunikációs készség', 'Problémamegoldó képesség', 'Segítőkészség', 'Stressztűrő képesség',
       'Szervezőkészség', 'Felelősségtudat']) },
@@ -89,13 +89,6 @@
 
   /* ---------- Dátumok (szabad szöveg, pl. 2023.08 vagy 2023.08.14.) ---------- */
 
-  function parseYM(s) {
-    var m = /(\d{4})(?:\D+(\d{1,2}))?/.exec(String(s || ''));
-    return m ? { y: parseInt(m[1], 10), m: m[2] ? Math.min(12, Math.max(1, parseInt(m[2], 10))) : 0 } : null;
-  }
-  function nowKey() { var d = new Date(); return d.getFullYear() * 12 + d.getMonth(); }
-  function isCurrent(j) { return j.current || /jelenleg|most|folyamatban/i.test(j.to || ''); }
-
   function range(job) {
     var a = (job.from || '').trim();
     var b = job.current ? 'jelenleg' : (job.to || '').trim();
@@ -107,22 +100,18 @@
     var a = (e.from || '').trim(), b = (e.to || '').trim();
     return a && b ? a + ' – ' + b : (a || b);
   }
-  // 5 évnél régebben véget ért munka. Ha nem értjük a dátumot, nem rejtjük el.
-  function isOld(job) {
-    if (isCurrent(job)) return false;
-    var s = job.to && job.to.trim() ? job.to : job.from;
-    var p = parseYM(s);
-    if (!p) return false;
-    var month = p.m || (job.to && job.to.trim() ? 12 : 1);
-    return p.y * 12 + month - 1 < nowKey() - 60;
-  }
   function jobHasContent(j) { return !!(j.role || j.company || j.desc || j.from || j.to); }
   function eduHasContent(e) { return !!(e.school || e.degree || e.from || e.to); }
   function visibleJobs() {
-    return state.jobs.filter(function (j) { return jobHasContent(j) && !(state.last5 && isOld(j)); });
+    return state.jobs.filter(jobHasContent);
   }
 
   /* ---------- Szövegfeldolgozás ---------- */
+
+  // Minden szó (és kötőjel utáni rész) nagy kezdőbetűs lesz, a többi betűt nem bántja
+  function capitalizeWords(v) {
+    return String(v).replace(/(^|[\s\-'’.])(\p{L})/gu, function (m, pre, ch) { return pre + ch.toLocaleUpperCase('hu'); });
+  }
 
   function lines(s) {
     return String(s || '').split(/\n+/).map(function (l) {
@@ -251,9 +240,6 @@
       raf = 0;
       $('#sheet-wrap').innerHTML = sheetHTML();
       fitPreview();
-      var n = state.jobs.filter(function (j) { return jobHasContent(j) && isOld(j); }).length;
-      $('#last5-note').textContent = !state.last5 ? '' :
-        (n ? n + ' régebbi munkahelyet elrejtettünk az önéletrajzból (az űrlapon megmaradnak).' : 'Nincs 5 évnél régebbi munkahely.');
     });
   }
 
@@ -468,6 +454,15 @@
   function init() {
     $$('[data-key]').forEach(function (el) {
       el.addEventListener('input', function () {
+        var key = el.getAttribute('data-key');
+        if (key === 'name' || key === 'email') {
+          var fixed = key === 'name' ? capitalizeWords(el.value) : el.value.toLowerCase().replace(/\s+/g, '');
+          if (fixed !== el.value) {
+            var pos = el.selectionStart;
+            el.value = fixed;
+            try { el.setSelectionRange(pos, pos); } catch (e) { /* e-mail mezőn nem minden böngésző engedi */ }
+          }
+        }
         state[el.getAttribute('data-key')] = el.value;
         if (el.id === 'f-skills') renderIdeas();
         update();
@@ -476,7 +471,6 @@
     $$('input[name="tpl"]').forEach(function (r) {
       r.addEventListener('change', function () { if (r.checked) { state.template = r.value; update(); } });
     });
-    $('#opt-last5').addEventListener('change', function (e) { state.last5 = e.target.checked; update(); });
     $('#f-photo').addEventListener('change', function (e) { handlePhoto(e.target.files[0]); });
     $('#photo-remove').addEventListener('click', function () {
       state.photo = ''; $('#f-photo').value = ''; $('#photo-remove').hidden = true; update();
@@ -490,8 +484,8 @@
       var panel = $('#ideas'), open = panel.hidden;
       panel.hidden = !open;
       this.setAttribute('aria-expanded', String(open));
-      this.textContent = open ? 'Ötletek elrejtése ▴' : 'Kérek ötletet ▾';
-      if (open) renderIdeas();
+      $('.ib-main', this).textContent = open ? 'Ötletek elrejtése ▴' : '✨ Kérek ötletet';
+      if (open) { renderIdeas(); panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
     });
     $('#idea-cats').addEventListener('click', function (ev) {
       var b = ev.target.closest('[data-cat]');

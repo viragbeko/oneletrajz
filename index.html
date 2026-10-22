@@ -159,14 +159,14 @@
     <fieldset>
       <legend>Alapadatok</legend>
       <label>Teljes neved
-        <input data-key="name" autocomplete="name" spellcheck="true" lang="hu" placeholder="pl. Kovács Anna">
+        <input data-key="name" autocomplete="name" autocapitalize="words" spellcheck="true" lang="hu" placeholder="pl. Kovács Anna">
       </label>
       <div class="two">
         <label>Telefon
           <input data-key="phone" type="tel" autocomplete="tel" placeholder="+36 30 123 4567">
         </label>
         <label>E-mail
-          <input data-key="email" type="email" autocomplete="email" placeholder="nev@példa.hu">
+          <input data-key="email" type="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="nev@példa.hu">
         </label>
       </div>
       <div class="two">
@@ -194,10 +194,6 @@
 
     <fieldset>
       <legend>Szakmai tapasztalat</legend>
-      <label class="check">
-        <input type="checkbox" id="opt-last5"> Csak az elmúlt 5 év munkahelyeit mutasd
-      </label>
-      <p class="hint" id="last5-note"></p>
       <div id="jobs-list"></div>
       <button type="button" id="add-job" class="ghost">+ Munkahely hozzáadása</button>
     </fieldset>
@@ -210,13 +206,13 @@
 
     <fieldset>
       <legend>Kompetenciák</legend>
+      <button type="button" id="ideas-btn" class="ideas-btn" aria-expanded="false" aria-controls="ideas"><span class="ib-main">✨ Kérek ötletet</span><span class="ib-sub">Nem kell gépelned: válassz kész mondatokat</span></button>
       <label>Nyelvek (soronként egy, a lista elejére kerülnek)
         <textarea data-key="langs" rows="2" spellcheck="true" lang="hu" placeholder="Angol nyelv: középfok (B2), írásban és szóban&#10;Német nyelv: alapfok"></textarea>
       </label>
       <label>Kompetenciák (soronként egy)
         <textarea data-key="skills" id="f-skills" rows="5" spellcheck="true" lang="hu" placeholder="Terhelhetőség&#10;Precizitás&#10;Csapatban és egyedül is tudok dolgozni"></textarea>
       </label>
-      <button type="button" id="ideas-btn" class="ghost" aria-expanded="false" aria-controls="ideas">Kérek ötletet ▾</button>
       <div id="ideas" class="ideas" hidden>
         <p class="hint">Válassz területet, majd koppints a mondatokra. Újra koppintva kiveszed.</p>
         <div class="chips" id="idea-cats" role="tablist" aria-label="Terület"></div>
