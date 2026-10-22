@@ -9,17 +9,15 @@
   function newOther() { return { title: 'Egyéb', text: '' }; }
 
   var DEF_HUE = 214, DEF_LIGHT = 35;
-  var FS_MIN = -1, FS_MAX = 3, FS_STEP = 2; // lépcsők: -2, alap, +2, +4, +6 pont
+  var BASE_PT = 2, FS_MIN = -2, FS_MAX = 3, FS_STEP = 2; // az alapméret már +2 pt, innen lépked a gomb
 
   var state = {
-    name: '', title: '', email: '', phone: '', city: '', born: '', link: '', photo: '',
+    name: '', fileName: '', title: '', email: '', phone: '', city: '', born: '', link: '', photo: '',
     summary: '', skills: '', langs: '',
     template: 'simple', last5: false,
     fsLevel: 0, hue: DEF_HUE, light: DEF_LIGHT,
     jobs: [newJob()], edus: [newEdu()], others: [newOther()]
   };
-
-  var A4_PX = 297 * 96 / 25.4;
 
   /* ---------- Kompetencia-ötletek ---------- */
 
@@ -138,12 +136,11 @@
     if (sub) return '<b>' + esc(sub) + '</b>';
     return '';
   }
-  function compItems() { return lines(state.skills); }
-  function langItems() { return lines(state.langs); }
+  function compItems() { return lines(state.langs).concat(lines(state.skills)); }
 
   // Betűméret és szín: a lap saját változóiként kerül a lapra, így a letöltött fájlban is megmarad.
   function sheetVars() {
-    var fs = state.fsLevel * FS_STEP;
+    var fs = BASE_PT + state.fsLevel * FS_STEP;
     var h = state.hue, l = state.light;
     return '--fs:' + fs + 'pt;' +
       '--ac:hsl(' + h + ',50%,' + l + '%);' +
@@ -184,7 +181,7 @@
     var role = state.title ? '<p class="role">' + esc(state.title) + '</p>' : '';
     var contact = contactItems();
     var born = state.born.trim() ? '<div class="born">Született: ' + esc(state.born.trim()) + '</div>' : '';
-    var comp = compItems(), langs = langItems();
+    var comp = compItems();
     var vars = ' style="' + sheetVars() + '"';
     var body =
       sec('Bemutatkozás', richHTML(state.summary)) +
@@ -199,7 +196,6 @@
       var list = function (arr) { return '<ul>' + arr.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>'; };
       return '<div class="sheet t-modern"' + vars + '><aside class="aside">' + photoHTML() +
         (side.length ? '<h2>Kapcsolat</h2><ul>' + side.map(function (c) { return '<li>' + c + '</li>'; }).join('') + '</ul>' : '') +
-        (langs.length ? '<h2>Nyelvek</h2>' + list(langs) : '') +
         (comp.length ? '<h2>Kompetenciák</h2>' + list(comp) : '') +
         '</aside><div class="main"><h1>' + name + '</h1>' + role + body + other + '</div></div>';
     }
@@ -210,79 +206,10 @@
 
     if (state.template === 'compact') {
       return '<div class="sheet t-compact"' + vars + '>' + head + body +
-        sec('Nyelvek', bulletsHTML(langs, 'cols')) + sec('Kompetenciák', bulletsHTML(comp, 'cols')) + other + '</div>';
+        sec('Kompetenciák', bulletsHTML(comp, 'cols')) + other + '</div>';
     }
     return '<div class="sheet t-simple"' + vars + '>' + head + body +
-      sec('Nyelvek', bulletsHTML(langs)) + sec('Kompetenciák', bulletsHTML(comp)) + other + '</div>';
-  }
-
-  /* ---------- Tippek (szabályalapú, nincs AI) ---------- */
-
-  function computeTips(pages) {
-    var tips = [];
-    function add(level, text) { tips.push({ level: level, text: text }); }
-
-    if (!state.name.trim()) add('warn', 'Hiányzik a neved.');
-    if (!state.email.trim() && !state.phone.trim()) add('warn', 'Nincs elérhetőség. Adj meg legalább egy telefonszámot vagy e-mail-címet.');
-    if (state.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(state.email.trim())) add('warn', 'Az e-mail-cím formátuma hibásnak tűnik.');
-
-    var sum = state.summary.trim();
-    if (!sum) add('info', 'A bemutatkozás hiányzik. 2–3 mondat elég: ki vagy, miben vagy jó, mit keresel.');
-    else if (sum.length < 60) add('info', 'A bemutatkozás nagyon rövid. 150–400 karakter a jó.');
-    else if (sum.length > 600) add('warn', 'A bemutatkozás túl hosszú (' + sum.length + ' karakter). Rövidítsd, a részletek a munkahelyeknél vannak.');
-
-    var jobs = state.jobs.filter(jobHasContent);
-    var anyNumber = false, anyBullets = false, weak = 0, longLine = 0, many = 0, noDesc = 0, noDate = 0;
-    jobs.forEach(function (j) {
-      var b = lines(j.desc);
-      if (!b.length) noDesc++;
-      if (b.length > 6) many++;
-      if (!j.from.trim()) noDate++;
-      b.forEach(function (l) {
-        anyBullets = true;
-        if (/\d/.test(l)) anyNumber = true;
-        if (l.length > 170) longLine++;
-        if (/^(felelős\s+(voltam|vagyok)|feladatom|részt\s+vettem|segítettem|közreműködtem)/i.test(l)) weak++;
-      });
-    });
-    if (noDesc) add('info', noDesc + ' munkahelynél nincs leírás. 2–4 sor kell: mit csináltál és mi lett az eredménye.');
-    if (many) add('warn', 'Van munkahely 6-nál több felsorolással. Hagyd meg a 3–5 legfontosabbat.');
-    if (longLine) add('warn', longLine + ' sor 170 karakternél hosszabb. Egy sor egy gondolat legyen.');
-    if (weak) add('info', 'Cselekvő igével kezdj, ne azzal, hogy „felelős voltam” vagy „feladatom volt”. Pl. „Vezettem”, „Csökkentettem”.');
-    if (anyBullets && !anyNumber) add('info', 'Sehol nincs szám. A mennyiség (hány ügyfél, mennyi forint, hány százalék) hitelessé teszi a leírást.');
-    if (noDate) add('warn', noDate + ' munkahelynél hiányzik a kezdő dátum.');
-
-    var older = state.jobs.filter(function (j) { return jobHasContent(j) && isOld(j); }).length;
-    if (older && !state.last5) add('info', older + ' munkahely 5 évnél régebben ért véget. Ha nem kapcsolódik az álláshoz, kapcsold be az „elmúlt 5 év” szűrőt.');
-
-    var text = [state.name, state.title, state.summary, state.skills, state.langs]
-      .concat(state.others.map(function (o) { return o.text; }))
-      .concat(state.jobs.map(function (j) { return j.role + ' ' + j.company + ' ' + j.desc; })).join('\n');
-    if (/!/.test(text)) add('info', 'Felkiáltójel van a szövegben. Önéletrajzban nem szokás, töröld.');
-    if (/[^\S\n]{2,}/.test(text)) add('info', 'Dupla szóköz van a szövegben. Töröld, mert rendezetlennek látszik.');
-    if (/\b[A-ZÁÉÍÓÖŐÚÜŰ]{5,}\b/.test(text.replace(/\b(SAP|ERP|CRM|HTML|CSS|NAV|SZJA|ÁFA|GDPR|IFRS|HACCP)\b/g, ''))) {
-      add('info', 'Csupa nagybetűs szó van a szövegben. Nehezebb olvasni, használj sima írást.');
-    }
-    if (lines(state.skills).length > 10) add('info', lines(state.skills).length + ' kompetenciát adtál meg. 6–10 a jó, a legfontosabbakat tartsd meg.');
-
-    if (pages > 2) add('warn', 'Az önéletrajz ' + pages + ' oldalas. Cél az 1, legfeljebb 2 oldal. Rövidíts, csökkentsd a betűméretet, vagy válaszd a „Tömör” sablont.');
-    else if (pages === 2) add('info', 'Az önéletrajz 2 oldalas. 10 évnél kevesebb tapasztalatnál 1 oldal a jó.');
-
-    if (!tips.some(function (t) { return t.level === 'warn'; }) && (state.name || jobs.length)) {
-      add('ok', 'Nincs súlyos hiba. Olvasd át még egyszer, és kérj meg valakit, hogy ő is nézze át.');
-    }
-    return tips;
-  }
-
-  function renderTips(pages) {
-    var tips = computeTips(pages);
-    var warns = tips.filter(function (t) { return t.level === 'warn'; }).length;
-    var infos = tips.filter(function (t) { return t.level === 'info'; }).length;
-    $('#tips-sum').textContent = 'Tippek' + (warns || infos ? ' (' + (warns ? warns + ' javítandó' : '') + (warns && infos ? ', ' : '') + (infos ? infos + ' javaslat' : '') + ')' : '');
-    $('#tips').innerHTML = tips.slice(0, 8).map(function (t) {
-      var label = t.level === 'warn' ? 'Javítsd:' : t.level === 'ok' ? 'Rendben:' : 'Tipp:';
-      return '<div class="tip ' + t.level + '"><b>' + label + '</b>' + esc(t.text) + '</div>';
-    }).join('');
+      sec('Kompetenciák', bulletsHTML(comp)) + other + '</div>';
   }
 
   /* ---------- Előnézet ---------- */
@@ -310,8 +237,6 @@
       raf = 0;
       $('#sheet-wrap').innerHTML = sheetHTML();
       fitPreview();
-      var sheet = $('#sheet-wrap').firstElementChild;
-      renderTips(Math.max(1, Math.ceil(sheet.offsetHeight / A4_PX - 0.03)));
       var n = state.jobs.filter(function (j) { return jobHasContent(j) && isOld(j); }).length;
       $('#last5-note').textContent = !state.last5 ? '' :
         (n ? n + ' régebbi munkahelyet elrejtettünk az önéletrajzból (az űrlapon megmaradnak).' : 'Nincs 5 évnél régebbi munkahely.');
@@ -445,8 +370,12 @@
 
   /* ---------- Letöltés ---------- */
 
+  // Saját név, ha megadta; különben a neve alapján: Kovacs_Anna_Oneletrajz
   function fileBase() {
-    var n = (state.name || '').trim().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    var custom = (state.fileName || '').trim()
+      .replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '').replace(/\s+/g, '_').replace(/^[._]+|[._]+$/g, '');
+    if (custom) return custom;
+    var n = (state.name || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
     return (n ? n + '_' : '') + 'Oneletrajz';
   }

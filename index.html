@@ -14,7 +14,7 @@
 @page { size: A4; margin: 0; }
 .sheet, .sheet * { box-sizing: border-box; }
 .sheet {
-  --fs: 0pt; --ac: hsl(214, 50%, 35%); --acd: hsl(214, 50%, 30%); --acl: hsl(214, 75%, 82%);
+  --fs: 2pt; --ac: hsl(214, 50%, 35%); --acd: hsl(214, 50%, 30%); --acl: hsl(214, 75%, 82%);
   width: 210mm; min-height: 297mm; background: #fff; color: #111;
   font-family: Arial, Helvetica, "Segoe UI", sans-serif;
   font-size: calc(11.5pt + var(--fs)); line-height: 1.4;
@@ -37,7 +37,7 @@
 .t-simple .role { font-size: calc(12.5pt + var(--fs)); color: #444; }
 .t-simple .contact, .t-simple .born { color: #666; font-size: calc(12.5pt + var(--fs)); }
 .t-simple .contact span + span::before { content: "|"; margin: 0 2mm; }
-.t-simple h2 { font-size: calc(12.5pt + var(--fs)); text-transform: uppercase; color: var(--ac); font-weight: 700; border-bottom: .3mm solid var(--ac); margin: 5mm 0 2.5mm; padding-bottom: .6mm; }
+.t-simple h2 { font-size: calc(12.5pt + var(--fs)); line-height: 1.1; text-transform: uppercase; color: var(--ac); font-weight: 700; border-bottom: .3mm solid var(--ac); margin: 5mm 0 2mm; padding-bottom: .2mm; }
 .t-simple p { margin-bottom: 1.5mm; }
 .t-simple .bul { margin: 1.5mm 0 0 3mm; }
 .t-simple .item { margin-bottom: 3.2mm; }
@@ -47,13 +47,14 @@
 /* Modern */
 .t-modern { display: grid; grid-template-columns: 62mm 1fr; padding: 0; }
 .t-modern .aside { background: var(--acd); color: #fff; padding: 14mm 7mm; }
+.t-modern .aside, .t-modern .aside * { font-weight: 400; }
 .t-modern .aside .photo { width: 40mm; height: 40mm; border-radius: 50%; margin: 0 auto 7mm; }
-.t-modern .aside h2 { font-size: calc(10pt + var(--fs)); text-transform: uppercase; letter-spacing: .14em; margin: 6mm 0 2mm; color: var(--acl); }
+.t-modern .aside h2 { font-size: calc(10pt + var(--fs)); text-transform: uppercase; letter-spacing: .12em; margin: 6mm 0 2mm; color: var(--acl); }
 .t-modern .aside li { font-size: calc(10.2pt + var(--fs)); margin-top: 1mm; overflow-wrap: anywhere; }
 .t-modern .main { padding: 15mm 12mm 14mm 11mm; }
 .t-modern h1 { font-size: calc(27pt + var(--fs)); line-height: 1.08; color: var(--acd); }
 .t-modern .role { font-size: calc(13pt + var(--fs)); color: #5b6573; margin-top: 1.5mm; }
-.t-modern .main h2 { font-size: calc(11pt + var(--fs)); text-transform: uppercase; letter-spacing: .14em; color: var(--acd); margin: 7mm 0 2.5mm; }
+.t-modern .main h2 { font-size: calc(11pt + var(--fs)); font-weight: 700; text-transform: uppercase; letter-spacing: .14em; color: var(--acd); margin: 7mm 0 2.5mm; }
 .t-modern .main p { margin-bottom: 1.5mm; }
 .t-modern .item { margin-bottom: 3.5mm; padding-left: 3.5mm; border-left: .7mm solid var(--acl); }
 .t-modern .when { display: block; font-size: calc(10pt + var(--fs)); }
@@ -115,10 +116,18 @@
     <h1 class="page-title">Töltsd ki, az önéletrajzod közben elkészül</h1>
     <p class="lead">Amit beírsz, azonnal megjelenik az önéletrajzon. Az oldal frissítésekor az adatok törlődnek, ezért a végén töltsd le.</p>
 
-    <details class="tipsbox" id="tipsbox" open>
-      <summary id="tips-sum">Tippek</summary>
-      <div class="tips" id="tips" aria-live="polite"></div>
+    <details class="tipsbox" open>
+      <summary>Tippek</summary>
+      <div class="tips">
+        <div class="tip info">Törekedj a rövid, lényegretörő megfogalmazásra. Az olvasó szeme elveszhet a sok részletben.</div>
+        <div class="tip info">A munkához kapcsolódó dolgok feltüntetése elég. A pályázathoz nem kapcsolódó tapasztalatot kiírni felesleges.</div>
+        <div class="tip info">Ha nincs még tapasztalatod, a bemutatkozás részben beszélj arról, hogy miért jelölted meg a munkát, például mert a végzettséged kapcsolódik hozzá, vagy mert kompetensnek találod magad a munka elvégzésére.</div>
+      </div>
     </details>
+
+    <label class="filename">Az önéletrajz fájlneve letöltéskor
+      <input data-key="fileName" spellcheck="false" autocomplete="off" placeholder="pl. Kis_Anna_Tanítónő_2026január">
+    </label>
 
     <details class="tipsbox look">
       <summary>🎨 Megjelenés: betűméret és szín</summary>
@@ -206,15 +215,11 @@
     </fieldset>
 
     <fieldset>
-      <legend>Nyelvek</legend>
-      <label>Soronként egy
-        <textarea data-key="langs" rows="3" spellcheck="true" lang="hu" placeholder="Angol nyelv: középfok (B2), írásban és szóban&#10;Német nyelv: alapfok"></textarea>
-      </label>
-    </fieldset>
-
-    <fieldset>
       <legend>Kompetenciák</legend>
-      <label>Soronként egy
+      <label>Nyelvek (soronként egy, a lista elejére kerülnek)
+        <textarea data-key="langs" rows="2" spellcheck="true" lang="hu" placeholder="Angol nyelv: középfok (B2), írásban és szóban&#10;Német nyelv: alapfok"></textarea>
+      </label>
+      <label>Kompetenciák (soronként egy)
         <textarea data-key="skills" id="f-skills" rows="5" spellcheck="true" lang="hu" placeholder="Terhelhetőség&#10;Precizitás&#10;Csapatban és egyedül is tudok dolgozni"></textarea>
       </label>
       <button type="button" id="ideas-btn" class="ghost" aria-expanded="false" aria-controls="ideas">Kérek ötletet ▾</button>
