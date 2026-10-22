@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Önéletrajz készítő – ingyenes, regisztráció nélkül</title>
+<meta name="description" content="Ingyenes magyar önéletrajz készítő. Töltsd ki az adataidat, kapj tippeket, és töltsd le PDF-ben vagy HTML-ben. Semmit nem mentünk el, minden a böngésződben marad.">
+<link rel="stylesheet" href="style.css">
+
+<!-- Az önéletrajz lap stílusa. Ez kerül a letöltött HTML-be is, ezért külön blokk. -->
+<style id="sheet-css">
+@page { size: A4; margin: 0; }
+.sheet, .sheet * { box-sizing: border-box; }
+.sheet {
+  width: 210mm; min-height: 297mm; background: #fff; color: #1b1f24;
+  font: 10pt/1.45 "Segoe UI", Roboto, Arial, Helvetica, sans-serif;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.sheet h1, .sheet h2, .sheet h3, .sheet p, .sheet ul { margin: 0; padding: 0; }
+.sheet ul { list-style: none; }
+.sheet .ph { color: #a8afb7; }
+.sheet .job, .sheet .edu { break-inside: avoid; }
+.sheet .bul li { position: relative; padding-left: 4mm; margin-top: .6mm; }
+.sheet .bul li::before { content: "•"; position: absolute; left: 0.5mm; }
+.sheet .when { white-space: nowrap; }
+.sheet .photo { object-fit: cover; display: block; }
+
+/* Klasszikus */
+.t-classic { padding: 16mm 17mm; }
+.t-classic .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; padding-bottom: 5mm; border-bottom: .6mm solid #1b1f24; }
+.t-classic h1 { font-size: 24pt; line-height: 1.1; letter-spacing: -.3px; }
+.t-classic .role { font-size: 12pt; color: #4a525c; margin-top: 1.5mm; }
+.t-classic .contact { margin-top: 3mm; font-size: 9.5pt; color: #3a424b; display: flex; flex-wrap: wrap; gap: 0 5mm; }
+.t-classic .photo { width: 30mm; height: 38mm; flex: none; }
+.t-classic h2 { font-size: 10pt; text-transform: uppercase; letter-spacing: .12em; margin: 6mm 0 2.5mm; padding-bottom: 1mm; border-bottom: .25mm solid #c9ced4; }
+.t-classic .item { margin-bottom: 3.5mm; }
+.t-classic .row { display: flex; justify-content: space-between; gap: 6mm; }
+.t-classic .row b { font-size: 10.5pt; }
+.t-classic .row .when { color: #4a525c; font-size: 9.5pt; }
+.t-classic .sub { color: #4a525c; }
+
+/* Modern */
+.t-modern { display: grid; grid-template-columns: 62mm 1fr; padding: 0; }
+.t-modern .aside { background: #22334d; color: #fff; padding: 14mm 7mm; }
+.t-modern .aside .photo { width: 40mm; height: 40mm; border-radius: 50%; margin: 0 auto 7mm; }
+.t-modern .aside h2 { font-size: 9pt; text-transform: uppercase; letter-spacing: .14em; margin: 6mm 0 2mm; color: #9fc2ff; }
+.t-modern .aside li, .t-modern .aside p { font-size: 9.2pt; margin-top: 1mm; overflow-wrap: anywhere; }
+.t-modern .main { padding: 15mm 12mm 14mm 11mm; }
+.t-modern h1 { font-size: 25pt; line-height: 1.08; color: #22334d; }
+.t-modern .role { font-size: 12pt; color: #5b6573; margin-top: 1.5mm; }
+.t-modern .main h2 { font-size: 10pt; text-transform: uppercase; letter-spacing: .14em; color: #22334d; margin: 7mm 0 2.5mm; }
+.t-modern .item { margin-bottom: 3.5mm; padding-left: 3.5mm; border-left: .7mm solid #cfd8e6; }
+.t-modern .row b { font-size: 10.5pt; }
+.t-modern .when { display: block; color: #5b6573; font-size: 9pt; }
+.t-modern .sub { color: #5b6573; }
+
+/* Tömör */
+.t-compact { padding: 13mm 14mm; font-size: 9.5pt; line-height: 1.38; }
+.t-compact .head { display: flex; gap: 6mm; align-items: center; }
+.t-compact .photo { width: 24mm; height: 24mm; border-radius: 3mm; flex: none; }
+.t-compact h1 { font-size: 21pt; line-height: 1.1; color: #0b5d4b; }
+.t-compact .role { font-size: 11pt; color: #4a525c; }
+.t-compact .contact { margin-top: 2mm; font-size: 9pt; display: flex; flex-wrap: wrap; gap: 0 4mm; color: #3a424b; }
+.t-compact h2 { font-size: 9pt; text-transform: uppercase; letter-spacing: .12em; color: #fff; background: #0b5d4b; padding: .8mm 2.5mm; margin: 4.5mm 0 2mm; }
+.t-compact .item { margin-bottom: 2.5mm; }
+.t-compact .row { display: flex; justify-content: space-between; gap: 5mm; }
+.t-compact .row .when { color: #4a525c; font-size: 9pt; }
+.t-compact .sub { color: #4a525c; }
+.t-compact .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8mm; }
+</style>
+</head>
+<body>
+
+<header class="top no-print">
+  <div class="wrap">
+    <a class="brand" href="./">Önéletrajz<span>készítő</span></a>
+    <p class="privacy">🔒 Az adataid nem hagyják el a böngésződet. Nem mentünk el semmit.</p>
+  </div>
+</header>
+
+<main class="app wrap">
+
+  <!-- ŰRLAP -->
+  <section class="panel form no-print" aria-label="Adatok">
+    <h1 class="page-title">Készíts önéletrajzot 10 perc alatt</h1>
+    <p class="lead">Töltsd ki, jobbra élőben látod. Az oldal frissítésekor az adatok törlődnek, ezért a végén töltsd le.</p>
+
+    <fieldset>
+      <legend>Alapadatok</legend>
+      <label>Teljes neved
+        <input data-key="name" autocomplete="name" spellcheck="true" lang="hu" placeholder="pl. Kovács Anna">
+      </label>
+      <label>Milyen munkát keresel? (titulus)
+        <input data-key="title" spellcheck="true" lang="hu" placeholder="pl. Könyvelő, Pénzügyi asszisztens">
+      </label>
+      <div class="two">
+        <label>E-mail
+          <input data-key="email" type="email" autocomplete="email" placeholder="nev@példa.hu">
+        </label>
+        <label>Telefon
+          <input data-key="phone" type="tel" autocomplete="tel" placeholder="+36 30 123 4567">
+        </label>
+      </div>
+      <div class="two">
+        <label>Város
+          <input data-key="city" spellcheck="true" lang="hu" placeholder="pl. Győr">
+        </label>
+        <label>LinkedIn / honlap (nem kötelező)
+          <input data-key="link" placeholder="linkedin.com/in/…">
+        </label>
+      </div>
+      <div class="photo-row">
+        <label class="filebtn">Fotó feltöltése (nem kötelező)
+          <input id="f-photo" type="file" accept="image/*">
+        </label>
+        <button type="button" id="photo-remove" class="ghost" hidden>Fotó törlése</button>
+      </div>
+      <p class="hint">A fotó csak a böngésződben marad. Külföldi pályázatnál általában nem szokás fotót küldeni.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Bemutatkozás</legend>
+      <label>2–3 mondat: ki vagy, miben vagy jó, mit keresel
+        <textarea data-key="summary" rows="4" spellcheck="true" lang="hu" placeholder="pl. 5 éves tapasztalattal rendelkező pénzügyi könyvelő vagyok, számlázásban és költségellenőrzésben vagyok erős. Hosszú távú, stabil pozíciót keresek Győrben."></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Munkahelyek</legend>
+      <label class="check">
+        <input type="checkbox" id="opt-last5"> Csak az elmúlt 5 év munkahelyeit mutasd
+      </label>
+      <p class="hint" id="last5-note"></p>
+      <div id="jobs-list"></div>
+      <button type="button" id="add-job" class="ghost">+ Munkahely hozzáadása</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>Tanulmányok</legend>
+      <div id="edus-list"></div>
+      <button type="button" id="add-edu" class="ghost">+ Iskola hozzáadása</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>Készségek és nyelvek</legend>
+      <label>Készségek (vesszővel elválasztva)
+        <textarea data-key="skills" rows="2" spellcheck="true" lang="hu" placeholder="pl. Excel (haladó), SAP, könyvelés, számlázás, B kategória"></textarea>
+      </label>
+      <label>Nyelvek (vesszővel elválasztva)
+        <textarea data-key="langs" rows="2" spellcheck="true" lang="hu" placeholder="pl. angol (felsőfok, C1), német (alapfok)"></textarea>
+      </label>
+    </fieldset>
+  </section>
+
+  <!-- ELŐNÉZET -->
+  <section class="panel preview" aria-label="Előnézet">
+    <div class="toolbar no-print">
+      <div class="tpls" role="radiogroup" aria-label="Sablon">
+        <label><input type="radio" name="tpl" value="classic" checked><span>Klasszikus</span></label>
+        <label><input type="radio" name="tpl" value="modern"><span>Modern</span></label>
+        <label><input type="radio" name="tpl" value="compact"><span>Tömör</span></label>
+      </div>
+      <div class="actions">
+        <button type="button" id="btn-print" class="primary">PDF letöltése</button>
+        <button type="button" id="btn-html" class="ghost">HTML letöltése</button>
+      </div>
+    </div>
+
+    <div class="tips no-print" id="tips" aria-live="polite"></div>
+
+    <div class="stage" id="stage">
+      <div id="sheet-wrap"></div>
+    </div>
+    <p class="hint no-print center">A „PDF letöltése” gombra a nyomtatási ablakban válaszd a „Mentés PDF-ként” lehetőséget, és kapcsold ki a „Fejlécek és láblécek” jelölőnégyzetet.</p>
+  </section>
+</main>
+
+<!-- Ide jöhet majd hirdetés, a lap és az űrlap közé nem, csak a lap alá. -->
+<footer class="foot no-print">
+  <div class="wrap">
+    <p>Ingyenes eszköz. Nincs regisztráció, nincs mentés, az adataidat soha nem látjuk.</p>
+    <p><a href="adatvedelem.html">Adatvédelem</a></p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
